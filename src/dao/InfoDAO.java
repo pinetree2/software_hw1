@@ -109,14 +109,27 @@ public class InfoDAO {
 
 
     //찾기
-    public ArrayList<InfoDTO> FindAll(String searchField, String searchText){
+    public ArrayList<InfoDTO> getSearch(String searchText){
         ArrayList<InfoDTO> list = new ArrayList<InfoDTO>();
+        PreparedStatement preparedStatement = null;
+        ResultSet rs = null;
+        List<InfoDTO> res = new ArrayList<>();
+       // String sql = "SELECT * FROM animal WHERE (name LIKE '%"+searchText.trim() +"' OR name LIKE '"+searchText.trim()+"%') order by `name` desc";
+        String sql = "SELECT * FROM animal WHERE name LIKE '%"+searchText.trim()+"%'";
+        System.out.println("텍스트 : "+searchText);
         try{
             Class.forName("com.mysql.cj.jdbc.Driver");
             String url = "jdbc:mysql://localhost/animal?characterEncoding=UTF-8&serverTimezone=UTC";
             connection = DriverManager.getConnection(url,"root","1234");
             System.out.println("연결 성공");
 
+            preparedStatement = connection.prepareStatement(sql);
+            rs = preparedStatement.executeQuery();
+            while(rs.next()){
+                InfoDTO dto = new InfoDTO(rs.getString("name"),rs.getDate("birth"),rs.getString("type"),rs.getString("kind"),rs.getString("owner"),rs.getString("phone"));
+                res.add(dto);
+
+            }
 
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -126,28 +139,7 @@ public class InfoDAO {
             System.out.println("에러: " + e);
         }
 
-        PreparedStatement preparedStatement = null;
-        ResultSet rs = null;
-        List<InfoDTO> res = new ArrayList<>();
-
-
-
-        try{
-
-
-                String sql = "SELECT * FROM animal WHERE (name LIKE '%" + searchText.trim()+ "' OR name LIKE" +searchText.trim()+"%') order by name desc ";
-                preparedStatement = connection.prepareStatement(sql);
-                rs = preparedStatement.executeQuery();
-                while(rs.next()){
-                    InfoDTO dto = new InfoDTO(rs.getString("name"),rs.getDate("birth"),rs.getString("type"),rs.getString("kind"),rs.getString("owner"),rs.getString("phone"));
-                    res.add(dto);
-
-                }
-
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }finally{
+        finally{
             try {
                 rs.close();
                 preparedStatement.close();
